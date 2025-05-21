@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3005:3005"
+    depends_on:
+      - mongo
+    environment:
+      - PORT=3005
+    restart: always
+    networks:
+      - app-network
+
+  mongo:
+    image: mongo:latest
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:

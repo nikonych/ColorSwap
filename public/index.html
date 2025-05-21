@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор цвета</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        .color-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .color-box {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 0 3px rgba(0,0,0,0.5);
+            transition: transform 0.2s;
+        }
+        .color-box:hover {
+            transform: scale(1.05);
+        }
+        .color-box.selected {
+            box-shadow: 0 0 0 4px gold, 0 0 10px rgba(0,0,0,0.5);
+        }
+        .result {
+            font-size: 24px;
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f5f5f5;
+            min-height: 70px;
+        }
+        .loading {
+            display: none;
+            margin: 20px auto;
+        }
+        .status {
+            color: #4CAF50;
+            font-style: italic;
+            font-size: 14px;
+            margin-top: 5px;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Выберите цвет</h1>
+    <p>Нажмите на цвет, чтобы выбрать его и сделать доступным через API</p>
+
+    <div class="color-container" id="colors">
+        <!-- Цвета будут добавлены здесь из JavaScript -->
+    </div>
+
+    <div class="loading" id="loading">Загрузка...</div>
+
+    <div class="result" id="result">
+        Выберите цвет, чтобы сделать его доступным через API
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const colorsContainer = document.getElementById('colors');
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+            const statusDiv = document.getElementById('status');
+            let selectedColor = null;
+
+            // Загрузка цветов с сервера
+            fetch('/api/colors')
+                .then(response => response.json())
+                .then(colors => {
+                    colors.forEach(color => {
+                        const colorBox = document.createElement('div');
+                        colorBox.className = 'color-box';
+                        colorBox.style.backgroundColor = color.color;
+                        colorBox.textContent = color.name;
+                        colorBox.dataset.name = color.name;
+
+                        colorBox.addEventListener('click', function() {
+                            console.log(color)
+                            selectColor(color.color);
+                        });
+
+                        colorsContainer.appendChild(colorBox);
+                    });
+
+                    // Загрузить текущий выбранный цвет
+                    loadCurrentSelection();
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке цветов:', error);
+                    resultDiv.textContent = 'Ошибка при загрузке цветов. Пожалуйста, попробуйте позже.';
+                });
+
+            // Загрузка текущего выбора
+            function loadCurrentSelection() {
+                fetch('/api/current')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.colorName) {
+                            selectedColor = data.colorName;
+                            updateSelectedColorUI(data.colorName);
+                            resultDiv.textContent = `Текущий выбор: ${data.colorName} - ${data.object}`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при загрузке текущего выбора:', error);
+                    });
+            }
+
+            // Функция обновления UI
+            function updateSelectedColorUI(colorName) {
+                // Сначала удаляем выделение со всех цветов
+                document.querySelectorAll('.color-box').forEach(box => {
+                    box.classList.remove('selected');
+                });
+
+                // Затем добавляем класс "selected" к выбранному цвету
+                const selectedBox = document.querySelector(`.color-box[data-name="${colorName}"]`);
+                if (selectedBox) {
+                    selectedBox.classList.add('selected');
+                }
+            }
+
+            // Функция выбора цвета
+            function selectColor(colorName) {
+                console.log(colorName)
+                resultDiv.textContent = 'Сохранение выбора...';
+                loadingDiv.style.display = 'block';
+                statusDiv.textContent = '';
+
+                fetch('/api/select', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ colorName: colorName })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        loadingDiv.style.display = 'none';
+                        selectedColor = colorName;
+                        updateSelectedColorUI(colorName);
+                        resultDiv.textContent = `Выбран ${colorName}: ${data.object}`;
+                        statusDiv.textContent = 'Выбор успешно сохранен. Теперь он доступен через API /api/current';
+                    })
+                    .catch(error => {
+                        loadingDiv.style.display = 'none';
+                        console.error('Ошибка при сохранении выбора:', error);
+                        resultDiv.textContent = 'Произошла ошибка при сохранении выбора. Пожалуйста, попробуйте еще раз.';
+                    });
+            }
+        });
+    </script>
+</body>
+</html>
