@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Выбор цвета</title>
+    <title>Farbauswahl</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -63,17 +63,17 @@
     </style>
 </head>
 <body>
-    <h1>Выберите цвет</h1>
-    <p>Нажмите на цвет, чтобы выбрать его и сделать доступным через API</p>
+    <h1>Wähle eine Farbe</h1>
+    <p>Klicke auf eine Farbe, um sie auszuwählen und über die API verfügbar zu machen</p>
 
     <div class="color-container" id="colors">
-        <!-- Цвета будут добавлены здесь из JavaScript -->
+        <!-- Farben werden hier durch JavaScript hinzugefügt -->
     </div>
 
-    <div class="loading" id="loading">Загрузка...</div>
+    <div class="loading" id="loading">Lade...</div>
 
     <div class="result" id="result">
-        Выберите цвет, чтобы сделать его доступным через API
+        Wähle eine Farbe, um sie über die API verfügbar zu machen
     </div>
 
     <div class="status" id="status"></div>
@@ -86,7 +86,7 @@
             const statusDiv = document.getElementById('status');
             let selectedColor = null;
 
-            // Загрузка цветов с сервера
+            // Farben vom Server laden
             fetch('/api/colors')
                 .then(response => response.json())
                 .then(colors => {
@@ -105,15 +105,15 @@
                         colorsContainer.appendChild(colorBox);
                     });
 
-                    // Загрузить текущий выбранный цвет
+                    // Aktuell ausgewählte Farbe laden
                     loadCurrentSelection();
                 })
                 .catch(error => {
-                    console.error('Ошибка при загрузке цветов:', error);
-                    resultDiv.textContent = 'Ошибка при загрузке цветов. Пожалуйста, попробуйте позже.';
+                    console.error('Fehler beim Laden der Farben:', error);
+                    resultDiv.textContent = 'Fehler beim Laden der Farben. Bitte versuche es später noch einmal.';
                 });
 
-            // Загрузка текущего выбора
+            // Aktuelle Auswahl laden
             function loadCurrentSelection() {
                 fetch('/api/current')
                     .then(response => response.json())
@@ -121,32 +121,30 @@
                         if (data.colorName) {
                             selectedColor = data.colorName;
                             updateSelectedColorUI(data.colorName);
-                            resultDiv.textContent = `Текущий выбор: ${data.colorName} - ${data.object}`;
+                            resultDiv.textContent = `Aktuelle Auswahl: ${data.colorName} - ${data.object}`;
                         }
                     })
                     .catch(error => {
-                        console.error('Ошибка при загрузке текущего выбора:', error);
+                        console.error('Fehler beim Laden der aktuellen Auswahl:', error);
                     });
             }
 
-            // Функция обновления UI
+            // UI aktualisieren
             function updateSelectedColorUI(colorName) {
-                // Сначала удаляем выделение со всех цветов
                 document.querySelectorAll('.color-box').forEach(box => {
                     box.classList.remove('selected');
                 });
 
-                // Затем добавляем класс "selected" к выбранному цвету
                 const selectedBox = document.querySelector(`.color-box[data-name="${colorName}"]`);
                 if (selectedBox) {
                     selectedBox.classList.add('selected');
                 }
             }
 
-            // Функция выбора цвета
+            // Farbe auswählen
             function selectColor(colorName) {
                 console.log(colorName)
-                resultDiv.textContent = 'Сохранение выбора...';
+                resultDiv.textContent = 'Auswahl wird gespeichert...';
                 loadingDiv.style.display = 'block';
                 statusDiv.textContent = '';
 
@@ -162,13 +160,13 @@
                         loadingDiv.style.display = 'none';
                         selectedColor = colorName;
                         updateSelectedColorUI(colorName);
-                        resultDiv.textContent = `Выбран ${colorName}: ${data.object}`;
-                        statusDiv.textContent = 'Выбор успешно сохранен. Теперь он доступен через API /api/current';
+                        resultDiv.textContent = `Ausgewählt: ${colorName} - ${data.object}`;
+                        statusDiv.textContent = 'Auswahl wurde erfolgreich gespeichert. Sie ist jetzt über die API /api/current verfügbar.';
                     })
                     .catch(error => {
                         loadingDiv.style.display = 'none';
-                        console.error('Ошибка при сохранении выбора:', error);
-                        resultDiv.textContent = 'Произошла ошибка при сохранении выбора. Пожалуйста, попробуйте еще раз.';
+                        console.error('Fehler beim Speichern der Auswahl:', error);
+                        resultDiv.textContent = 'Beim Speichern der Auswahl ist ein Fehler aufgetreten. Bitte versuche es erneut.';
                     });
             }
         });

@@ -11,14 +11,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// MongoDB соединение
+// MongoDB-Verbindung
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://mongo:27017/colorsdb';
 
 mongoose.connect(MONGO_URI)
-  .then(() => console.log('MongoDB подключена'))
-  .catch(err => console.error('Ошибка подключения MongoDB:', err));
+  .then(() => console.log('MongoDB verbunden'))
+  .catch(err => console.error('Fehler beim Verbinden mit MongoDB:', err));
 
-// Схема и модель для цветов и объектов
+// Schema und Modell für Farben und Objekte
 const colorSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   color: { type: String, required: true },
@@ -27,7 +27,7 @@ const colorSchema = new mongoose.Schema({
 
 const Color = mongoose.model('Color', colorSchema);
 
-// Схема и модель для последнего выбранного цвета
+// Schema und Modell für die zuletzt gewählte Farbe
 const selectionSchema = new mongoose.Schema({
   id: { type: String, default: 'lastSelection', required: true, unique: true },
   colorName: { type: String, required: true },
@@ -36,63 +36,63 @@ const selectionSchema = new mongoose.Schema({
 
 const Selection = mongoose.model('Selection', selectionSchema);
 
-// Инициализация базы данных, если она пуста
+// Initialisierung der Datenbank, falls leer
 async function initializeDatabase() {
   const count = await Color.countDocuments();
 
   if (count === 0) {
     const initialColors = [
-      { name: 'Yellow', color: '#FFEB3B', object: 'бабочка' },
-      { name: 'Orange', color: '#FF9800', object: 'звезда/палочка' },
-      { name: 'Green', color: '#4CAF50', object: 'костюм' },
-      { name: 'Red', color: '#F44336', object: 'шляпа' },
-      { name: 'Blue', color: '#2196F3', object: 'плащ' }
+      { name: 'Yellow', color: '#FFEB3B', object: 'Schmetterling' },
+      { name: 'Orange', color: '#FF9800', object: 'Stern/Stab' },
+      { name: 'Green', color: '#4CAF50', object: 'Kostüm' },
+      { name: 'Red', color: '#F44336', object: 'Hut' },
+      { name: 'Blue', color: '#2196F3', object: 'Umhang' }
     ];
 
     try {
       await Color.insertMany(initialColors);
 
-      // Устанавливаем желтый как начальный выбранный цвет
+      // Setzt Gelb als standardmäßig gewählte Farbe
       await Selection.findOneAndUpdate(
         { id: 'lastSelection' },
         { colorName: 'Yellow', timestamp: new Date() },
         { upsert: true, new: true }
       );
 
-      console.log('База данных инициализирована с начальными данными');
+      console.log('Datenbank mit Anfangsdaten initialisiert');
     } catch (err) {
-      console.error('Ошибка при инициализации данных:', err);
+      console.error('Fehler bei der Initialisierung der Daten:', err);
     }
   }
 }
 
-// Routes
+// Routen
 app.get('/api/colors', async (req, res) => {
   try {
     const colors = await Color.find({}, 'name color object');
     res.json(colors);
   } catch (err) {
-    res.status(500).json({ message: 'Ошибка сервера', error: err.message });
+    res.status(500).json({ message: 'Serverfehler', error: err.message });
   }
 });
 
-// Сохранить выбранный цвет
+// Gewählte Farbe speichern
 app.post('/api/select', async (req, res) => {
   try {
     const { colorName } = req.body;
 
-    // Проверяем, существует ли такой цвет
+    // Prüfen, ob diese Farbe existiert
     const color = await Color.findOne({ color: colorName });
     if (!color) {
-      return res.status(404).json({ message: 'Цвет не найден' });
+      return res.status(404).json({ message: 'Farbe nicht gefunden' });
     }
 
-    console.log(`Выбираем цвет: ${colorName}`);
+    console.log(`Farbe wird gewählt: ${colorName}`);
 
-    // Удаляем предыдущую запись перед созданием новой
+    // Alte Auswahl entfernen
     await Selection.deleteMany({ id: 'lastSelection' });
 
-    // Создаем новую запись о выбранном цвете
+    // Neue Auswahl speichern
     const newSelection = new Selection({
       id: 'lastSelection',
       colorName,
@@ -101,28 +101,28 @@ app.post('/api/select', async (req, res) => {
 
     await newSelection.save();
 
-    console.log(`Сохранен цвет: ${colorName}, объект: ${color.object}`);
+    console.log(`Farbe gespeichert: ${colorName}, Objekt: ${color.object}`);
 
-    res.json({ message: 'Цвет успешно выбран', object: color.object });
+    res.json({ message: 'Farbe erfolgreich gewählt', object: color.object });
   } catch (err) {
-    console.error('Ошибка при сохранении выбора:', err);
-    res.status(500).json({ message: 'Ошибка сервера', error: err.message });
+    console.error('Fehler beim Speichern der Auswahl:', err);
+    res.status(500).json({ message: 'Serverfehler', error: err.message });
   }
 });
 
-// Получить текущий выбранный цвет и объект
+// Aktuell gewählte Farbe und Objekt abrufen
 app.get('/api/current', async (req, res) => {
   try {
     const selection = await Selection.findOne({ id: 'lastSelection' });
 
     if (!selection) {
-      return res.status(404).json({ message: 'Нет выбранного цвета' });
+      return res.status(404).json({ message: 'Keine Farbe gewählt' });
     }
 
     const color = await Color.findOne({ color: selection.colorName });
 
     if (!color) {
-      return res.status(404).json({ message: 'Выбранный цвет не найден в базе данных' });
+      return res.status(404).json({ message: 'Gewählte Farbe nicht in der Datenbank gefunden' });
     }
 
     res.json({
@@ -131,31 +131,31 @@ app.get('/api/current', async (req, res) => {
       timestamp: selection.timestamp
     });
   } catch (err) {
-    res.status(500).json({ message: 'Ошибка сервера', error: err.message });
+    res.status(500).json({ message: 'Serverfehler', error: err.message });
   }
 });
 
-// Старый эндпоинт для совместимости
+// Alte Route für Kompatibilität
 app.get('/api/colors/:name', async (req, res) => {
   try {
     const colorName = req.params.name;
     const color = await Color.findOne({ name: new RegExp(colorName, 'i') });
 
     if (!color) {
-      return res.status(404).json({ message: 'Цвет не найден' });
+      return res.status(404).json({ message: 'Farbe nicht gefunden' });
     }
 
     res.json({ object: color.object });
   } catch (err) {
-    res.status(500).json({ message: 'Ошибка сервера', error: err.message });
+    res.status(500).json({ message: 'Serverfehler', error: err.message });
   }
 });
 
-// Запуск сервера после подключения к БД
+// Serverstart nach erfolgreicher DB-Verbindung
 mongoose.connection.once('open', async () => {
   await initializeDatabase();
 
   app.listen(PORT, () => {
-    console.log(`Сервер запущен на порту ${PORT}`);
+    console.log(`Server läuft auf Port ${PORT}`);
   });
 });
