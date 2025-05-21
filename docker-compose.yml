@@ -12,7 +12,7 @@ services:
       - app-network
 
   mongo:
-    image: mongo:latest
+    image: mcr.microsoft.com/mongo:latest
     volumes:
       - mongo-data:/data/db
     ports:
