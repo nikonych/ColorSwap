@@ -42,11 +42,11 @@ async function initializeDatabase() {
 
     if (count === 0) {
         const initialColors = [
-            {name: 'Yellow', color: '#FFEB3B', object: 'Fliege'}, // Именно "Fliege"
-            {name: 'Orange', color: '#FF9800', object: 'Zauberstab'}, // Именно "Zauberstab"
-            {name: 'Green', color: '#4CAF50', object: 'Zauberanzug'}, // Именно "Zauberanzug"
-            {name: 'Red', color: '#F44336', object: 'Zauberhut'},    // Именно "Zauberhut"
-            {name: 'Blue', color: '#2196F3', object: 'Zauberumhang'} // Именно "Zauberumhang"
+            {name: 'Yellow', color: '#FFEB3B', object: 'fliege'}, // Именно "Fliege"
+            {name: 'Orange', color: '#FF9800', object: 'zauberstab'}, // Именно "Zauberstab"
+            {name: 'Green', color: '#4CAF50', object: 'zauberanzug'}, // Именно "Zauberanzug"
+            {name: 'Red', color: '#F44336', object: 'zauberhut'},    // Именно "Zauberhut"
+            {name: 'Blue', color: '#2196F3', object: 'zauberumhang'} // Именно "Zauberumhang"
         ];
 
         try {
