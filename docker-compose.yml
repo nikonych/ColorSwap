@@ -4,19 +4,28 @@ services:
     ports:
       - "3005:3005"
     depends_on:
-      - mongo
+      - postgres
     environment:
       - PORT=3005
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=colorsdb
+      - POSTGRES_PORT=5432
     restart: always
     networks:
       - app-network
 
-  mongo:
-    image: mongo:latest
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=colorsdb
     volumes:
-      - mongo-data:/data/db
+      - postgres-data:/var/lib/postgresql/data
     ports:
-      - "27017:27017"
+      - "5432:5432"
     networks:
       - app-network
 
@@ -25,4 +34,4 @@ networks:
     driver: bridge
 
 volumes:
-  mongo-data:
+  postgres-data:
