@@ -160,7 +160,7 @@
                         loadingDiv.style.display = 'none';
                         selectedColor = colorName;
                         updateSelectedColorUI(colorName);
-                        resultDiv.textContent = `Ausgewählt: ${colorName} - ${data.object}`;
+                        resultDiv.textContent = `Ausgewählt: ${colorName} - ${data.object || 'unbekannt'}`;
                         statusDiv.textContent = 'Auswahl wurde erfolgreich gespeichert. Sie ist jetzt über die API /api/current verfügbar.';
                     })
                     .catch(error => {
